@@ -1,0 +1,25 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.playground/**/timeline.xctimeline
+*.playground/**/playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Secrets
+.env
+.env.*
+*.p8
+GoogleService-Info.plist
