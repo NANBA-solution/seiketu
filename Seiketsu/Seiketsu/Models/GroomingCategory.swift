@@ -41,7 +41,7 @@ enum GroomingCategory: String, CaseIterable, Codable, Identifiable {
         case .nails: return "爪"
         case .eyebrows: return "眉"
         case .beard: return "髭まわり"
-        case .earHair: return "耳毛"
+        case .earHair: return "耳垢"
         case .haircut: return "散髪"
         }
     }
@@ -87,7 +87,7 @@ enum GroomingCategory: String, CaseIterable, Codable, Identifiable {
         case .nails: return "爪を切る時間だ！"
         case .eyebrows: return "眉を整える時間だ！"
         case .beard: return "髭まわりを整えよう"
-        case .earHair: return "耳毛ケアを忘れていませんか？"
+        case .earHair: return "耳垢ケアを忘れていませんか？"
         case .haircut: return "散髪のタイミングだ！"
         }
     }

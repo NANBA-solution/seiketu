@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="gradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8FB0FF"/>
+      <stop offset="100%" stop-color="#DCE8FF"/>
+    </linearGradient>
+    <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse">
+      <rect width="16" height="16" fill="#F8FAFC"/>
+      <circle cx="4" cy="4" r="1.5" fill="#D9E2F1"/>
+      <circle cx="12" cy="12" r="1.5" fill="#D9E2F1"/>
+    </pattern>
+    <pattern id="diagonal" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <rect width="12" height="12" fill="#FAFBFE"/>
+      <rect width="3" height="12" fill="#E8EFFA"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#DCE8FF"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </radialGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#0B1D3A" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="800" fill="#FFFFFF"/>
+
+  <!-- row 1 -->
+  <rect x="70" y="80" width="300" height="260" rx="28" fill="#F8FAFC" stroke="#E9EEF5" stroke-width="2"/>
+  <rect x="450" y="80" width="300" height="260" rx="28" fill="#FFFFFF" stroke="#E9EEF5" stroke-width="2" filter="url(#softShadow)"/>
+  <rect x="830" y="80" width="300" height="260" rx="28" fill="url(#gradBlue)" stroke="#D6E2FA" stroke-width="2"/>
+
+  <!-- row 2 -->
+  <rect x="70" y="440" width="300" height="260" rx="28" fill="url(#dots)" stroke="#E9EEF5" stroke-width="2"/>
+  <rect x="450" y="440" width="300" height="260" rx="28" fill="url(#diagonal)" stroke="#E9EEF5" stroke-width="2"/>
+  <rect x="830" y="440" width="300" height="260" rx="28" fill="url(#glow)" stroke="#E9EEF5" stroke-width="2"/>
+</svg>

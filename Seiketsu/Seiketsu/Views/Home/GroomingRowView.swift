@@ -3,98 +3,160 @@ import UIKit
 
 struct GroomingRowView: View {
     let task: GroomingTask
+    var onCardTap: (() -> Void)?
     let onDone: () -> Void
 
-    private var progressValue: Double {
-        let total = task.averageIntervalDays
-        let elapsed = total - Double(task.daysUntilDue)
-        return min(max(elapsed / total, 0), 1.0)
-    }
+    @State private var isPressed = false
+
+    private var progressValue: Double { task.cycleProgress }
 
     private var urgencyColor: Color {
-        if task.daysUntilDue < 0  { return AppTheme.danger }
-        if task.daysUntilDue <= 2 { return AppTheme.warning }
+        if task.daysUntilDue < 0 { return AppTheme.danger }
+        if task.daysUntilDue <= 2 { return AppTheme.accent }
         return AppTheme.secondary
     }
 
-    private var progressColor: Color {
-        progressValue >= 1 ? AppTheme.danger : task.category.themeColor
+    private var showsBadge: Bool {
+        task.daysUntilDue <= 2 || task.daysUntilDue < 0
+    }
+
+    private var cardBorderColor: Color {
+        if task.canComplete { return AppTheme.done.opacity(0.55) }
+        if isPressed { return AppTheme.accent.opacity(0.6) }
+        return AppTheme.cardBorder
     }
 
     var body: some View {
-        HStack(spacing: 14) {
-            GroomingIconView(category: task.category, size: 22)
+        HStack(alignment: .center, spacing: 12) {
+            Group {
+                if let onCardTap {
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                            isPressed = true
+                        }
+                        onCardTap()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                                isPressed = false
+                            }
+                        }
+                    } label: {
+                        cardMainContent
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    cardMainContent
+                }
+            }
+
+            DoneButton(canComplete: task.canComplete, onDone: onDone)
+                .frame(width: 44)
+        }
+        .padding(14)
+        .background(AppTheme.surface)
+        .scaleEffect(isPressed ? 0.98 : 1)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(cardBorderColor, lineWidth: isPressed ? 2 : 1)
+        }
+        .animation(.spring(response: 0.28, dampingFraction: 0.72), value: isPressed)
+        .animation(.spring(response: 0.28, dampingFraction: 0.72), value: task.canComplete)
+    }
+
+    private var cardMainContent: some View {
+        HStack(alignment: .center, spacing: 12) {
+            GroomingIconView(category: task.category, size: 30)
+                .frame(width: 38)
 
             VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .firstTextBaseline) {
+                HStack(spacing: 6) {
                     Text(task.category.title)
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(AppTheme.primary)
-                    Spacer()
+                        .lineLimit(1)
+                        .layoutPriority(1)
+
+                    if showsBadge {
+                        StatusBadge(daysUntilDue: task.daysUntilDue)
+                    }
+
+                    Spacer(minLength: 4)
+
                     Text(task.daysLeftLabel)
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.caption.weight(.bold))
                         .foregroundStyle(urgencyColor)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(urgencyColor.opacity(0.1))
-                        .clipShape(Capsule())
+                        .lineLimit(1)
+                        .fixedSize()
                 }
 
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule()
-                            .fill(AppTheme.separator)
-                            .frame(height: 4)
+                            .fill(AppTheme.separator.opacity(0.7))
                         Capsule()
-                            .fill(progressColor)
-                            .frame(width: max(geo.size.width * progressValue, 0), height: 4)
-                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: progressValue)
+                            .fill(progressBarFill)
+                            .frame(width: progressBarWidth(in: geo.size.width))
                     }
                 }
                 .frame(height: 4)
-            }
 
-            DoneButton(isDueOrOverdue: task.isDueOrOverdue, onDone: onDone)
+                if let cardHint {
+                    Text(cardHint)
+                        .font(.caption2)
+                        .foregroundStyle(AppTheme.secondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private var cardHint: String? {
+        if task.canComplete { return "タップまたは右の ✓ でケアを記録" }
+        if !task.notificationsEnabled, task.isDueOrOverdue {
+            return "通知オフ · 期限後は右の ✓ で記録"
+        }
+        if task.isDueOrOverdue {
+            return "通知が届くと ✓ で記録できます"
+        }
+        if task.completionHistory.isEmpty {
+            return "初回ケア前 · ゲージは記録後に表示"
+        }
+        return nil
+    }
+
+    private var progressBarFill: Color {
+        if task.completionHistory.isEmpty { return AppTheme.separator.opacity(0.35) }
+        if task.canComplete { return AppTheme.done }
+        if task.daysUntilDue <= 2 { return AppTheme.accent }
+        return AppTheme.primary
+    }
+
+    private func progressBarWidth(in totalWidth: CGFloat) -> CGFloat {
+        guard progressValue > 0 else { return 0 }
+        return max(totalWidth * progressValue, 4)
     }
 }
 
 private struct DoneButton: View {
-    let isDueOrOverdue: Bool
+    let canComplete: Bool
     let onDone: () -> Void
-
-    var iconName: String {
-        isDueOrOverdue ? "checkmark.circle.fill" : "checkmark.circle"
-    }
-
-    var tint: Color {
-        isDueOrOverdue ? AppTheme.done : AppTheme.secondary.opacity(0.3)
-    }
 
     var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             onDone()
         } label: {
-            VStack(spacing: 3) {
-                Image(systemName: iconName)
-                    .font(.system(size: 28, weight: .regular))
-                    .foregroundStyle(tint)
-                Text("やった！")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(tint)
-            }
+            Image(systemName: canComplete ? "checkmark.circle.fill" : "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundStyle(canComplete ? AppTheme.done : AppTheme.separator)
+                .accessibilityLabel("やった！")
         }
-        .buttonStyle(SpringButtonStyle())
-    }
-}
-
-private struct SpringButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 1.22 : 1.0)
-            .animation(.spring(response: 0.22, dampingFraction: 0.5), value: configuration.isPressed)
+        .buttonStyle(.plain)
+        .disabled(!canComplete)
     }
 }

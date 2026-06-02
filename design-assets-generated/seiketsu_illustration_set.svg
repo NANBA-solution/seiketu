@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .line { stroke: #0B1D3A; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .skin { fill: #F7D9C9; }
+      .hair { fill: #0B1D3A; }
+      .shirtA { fill: #E8F0FE; }
+      .shirtB { fill: #DCE8FF; }
+      .accentBlue { fill: #1E3A8A; }
+      .accentMint { fill: #22C55E; }
+      .accentCoral { fill: #F47272; }
+      .soft { fill: #F8FAFC; stroke: #E5E7EB; stroke-width: 2; }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="800"/>
+
+  <!-- Card backgrounds -->
+  <g>
+    <rect class="soft" x="40" y="40" width="340" height="340" rx="24"/>
+    <rect class="soft" x="430" y="40" width="340" height="340" rx="24"/>
+    <rect class="soft" x="820" y="40" width="340" height="340" rx="24"/>
+    <rect class="soft" x="40" y="420" width="340" height="340" rx="24"/>
+    <rect class="soft" x="430" y="420" width="340" height="340" rx="24"/>
+    <rect class="soft" x="820" y="420" width="340" height="340" rx="24"/>
+  </g>
+
+  <!-- 1: mirror -->
+  <g transform="translate(90,80)">
+    <ellipse class="shirtA" cx="120" cy="220" rx="78" ry="64"/>
+    <circle class="skin" cx="120" cy="118" r="48"/>
+    <path class="hair" d="M82 120 C84 74 156 70 160 122 C150 94 94 98 82 120 Z"/>
+    <rect class="soft" x="194" y="80" width="76" height="116" rx="14"/>
+    <path class="line" d="M232 88 V188"/>
+    <circle class="skin" cx="190" cy="152" r="10"/>
+    <path class="line" d="M96 136 C112 148 128 148 144 136"/>
+  </g>
+
+  <!-- 2: phone checklist -->
+  <g transform="translate(480,80)">
+    <ellipse class="shirtB" cx="120" cy="220" rx="78" ry="64"/>
+    <circle class="skin" cx="120" cy="118" r="48"/>
+    <path class="hair" d="M84 118 C88 72 152 70 158 118 C150 90 94 94 84 118 Z"/>
+    <rect class="accentBlue" x="168" y="126" width="64" height="96" rx="12"/>
+    <rect fill="#ffffff" x="182" y="144" width="36" height="6" rx="3"/>
+    <rect fill="#ffffff" x="182" y="162" width="30" height="6" rx="3"/>
+    <rect fill="#ffffff" x="182" y="180" width="24" height="6" rx="3"/>
+    <path class="line" d="M94 146 C108 154 132 154 146 146"/>
+  </g>
+
+  <!-- 3: brushing hair -->
+  <g transform="translate(870,80)">
+    <ellipse class="shirtA" cx="120" cy="220" rx="78" ry="64"/>
+    <circle class="skin" cx="120" cy="118" r="48"/>
+    <path class="hair" d="M84 122 C84 78 156 74 160 124 C146 98 94 102 84 122 Z"/>
+    <rect class="accentMint" x="166" y="102" width="20" height="76" rx="10"/>
+    <path class="line" d="M176 110 L194 98"/>
+    <path class="line" d="M176 124 L196 114"/>
+    <path class="line" d="M176 138 L198 130"/>
+    <path class="line" d="M100 148 C114 158 130 158 144 148"/>
+  </g>
+
+  <!-- 4: trimming nails -->
+  <g transform="translate(90,460)">
+    <ellipse class="shirtB" cx="120" cy="220" rx="78" ry="64"/>
+    <circle class="skin" cx="120" cy="118" r="48"/>
+    <path class="hair" d="M86 120 C90 78 154 74 158 120 C148 94 96 96 86 120 Z"/>
+    <path class="line" d="M170 174 L218 150"/>
+    <circle class="accentCoral" cx="218" cy="150" r="10"/>
+    <path class="line" d="M214 144 L226 156"/>
+    <path class="line" d="M226 144 L214 156"/>
+  </g>
+
+  <!-- 5: ear cleaning -->
+  <g transform="translate(480,460)">
+    <ellipse class="shirtA" cx="120" cy="220" rx="78" ry="64"/>
+    <circle class="skin" cx="120" cy="118" r="48"/>
+    <path class="hair" d="M84 120 C88 78 154 74 158 122 C146 96 94 98 84 120 Z"/>
+    <path class="line" d="M176 116 L216 96"/>
+    <circle class="accentBlue" cx="218" cy="94" r="6"/>
+    <path class="line" d="M142 132 C152 136 162 132 168 124"/>
+  </g>
+
+  <!-- 6: done / relief -->
+  <g transform="translate(870,460)">
+    <ellipse class="shirtB" cx="120" cy="220" rx="78" ry="64"/>
+    <circle class="skin" cx="120" cy="118" r="48"/>
+    <path class="hair" d="M84 118 C88 76 156 74 160 122 C146 94 94 98 84 118 Z"/>
+    <circle class="accentMint" cx="224" cy="128" r="34"/>
+    <path class="line" d="M206 128 L220 142 L246 116"/>
+    <path class="line" d="M96 142 C112 156 130 156 146 142"/>
+  </g>
+</svg>

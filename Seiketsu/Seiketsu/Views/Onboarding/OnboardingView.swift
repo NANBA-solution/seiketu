@@ -6,21 +6,22 @@ struct OnboardingView: View {
     @State private var page = 0
     @State private var permissionDenied = false
 
-    private let totalPages = 6
-    private var isIntroPage: Bool { page == 0 }
+    /// 仕様: 4ドット（STEP1〜3, STEP5。STEP4はSTEP3上のダイアログ）
+    private var activeDotIndex: Int {
+        switch page {
+        case 0: return 0
+        case 1: return 1
+        case 2, 3: return 2
+        case 4: return 3
+        default: return 3
+        }
+    }
+
+    private var dotsFilledThroughEnd: Bool { page == 5 }
 
     var body: some View {
         ZStack {
-            // STEP1 のみダーク背景、他はライト
-            Group {
-                if isIntroPage {
-                    AppTheme.headerGradient
-                } else {
-                    AppTheme.background
-                }
-            }
-            .ignoresSafeArea()
-            .animation(.easeInOut(duration: 0.35), value: isIntroPage)
+            AppTheme.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 TabView(selection: $page) {
@@ -32,15 +33,18 @@ struct OnboardingView: View {
                     motivationPage.tag(5)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(.easeInOut(duration: 0.25), value: page)
+                .animation(.easeInOut(duration: 0.28), value: page)
 
-                adaptivePageIndicator
-                    .padding(.top, 12)
-                    .padding(.bottom, 10)
+                OnboardingPageDots(
+                    activeIndex: activeDotIndex,
+                    filledThroughEnd: dotsFilledThroughEnd
+                )
+                .padding(.top, 12)
+                .padding(.bottom, 12)
 
                 actionButton
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 30)
+                    .padding(.bottom, 28)
             }
         }
         .alert("通知がオフです", isPresented: $permissionDenied) {
@@ -55,226 +59,272 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Adaptive Page Indicator
-
-    private var adaptivePageIndicator: some View {
-        HStack(spacing: 5) {
-            ForEach(0..<totalPages, id: \.self) { index in
-                Capsule()
-                    .fill(indicatorColor(for: index))
-                    .frame(width: index == page ? 22 : 6, height: 6)
-                    .animation(.spring(response: 0.35, dampingFraction: 0.7), value: page)
-            }
-        }
-    }
-
-    private func indicatorColor(for index: Int) -> Color {
-        let isActive = index == page
-        if isIntroPage {
-            return isActive ? .white : .white.opacity(0.3)
-        } else {
-            return isActive ? AppTheme.accent : AppTheme.separator
-        }
-    }
-
-    // MARK: - Action Button
+    // MARK: - Footer Button
 
     @ViewBuilder
     private var actionButton: some View {
         switch page {
         case 0, 1:
-            PrimaryButton(title: "次へ") { page += 1 }
-        case 2, 3:
-            PrimaryButton(title: "通知を許可する") { requestNotificationsAndAdvance() }
+            OnboardingPrimaryButton(title: "次へ") { page += 1 }
+        case 2:
+            OnboardingPrimaryButton(title: "通知を許可する") { page += 1 }
+        case 3:
+            Color.clear.frame(height: 52)
         case 4:
-            PrimaryButton(title: "はじめる") { page += 1 }
+            OnboardingPrimaryButton(title: "はじめる") { page += 1 }
         case 5:
-            PrimaryButton(title: "スタート！") { finishOnboarding() }
+            OnboardingPrimaryButton(title: "スタート！") { finishOnboarding() }
         default:
             EmptyView()
         }
     }
 
-    // MARK: - STEP 1: Intro（ダーク背景 + 白テキスト）
+    // MARK: - STEP 1（白背景・キャッチ→ロゴ→タグライン→円形イラスト）
 
     private var introPage: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 24) {
-                // ロゴ（ダーク背景向けグラデーションマーク + 白テキスト）
-                VStack(spacing: 8) {
-                    LogoMarkView(size: 64)
-                    Text("セイケツ")
-                        .font(.system(size: 42, weight: .black, design: .rounded))
-                        .foregroundStyle(.white)
-                    Text("SEIKETSU")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.55))
-                        .tracking(4.5)
-                }
-                .padding(.top, 36)
+            VStack(spacing: 20) {
+                Text("ほっとくと、\nおっさんになる。")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(AppTheme.primary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.top, 36)
 
-                VStack(spacing: 10) {
-                    Text("ほっとくと、\nおっさんになる。")
-                        .font(.system(size: 26, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                    Text("だらしない男のための\n全自動・身だしなみアラートアプリ")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                }
+                SeiketsuLogoView(size: .large)
 
-                // ダーク背景対応のSwiftUIイラスト（カテゴリーアイコン軌道）
-                IntroIllustration()
+                Text("だらしない男のための\n全自動・身だしなみアラートアプリ")
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+
+                Image("OnboardingIntro")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 200, height: 200)
+                    .clipShape(Circle())
+                    .overlay {
+                        Circle()
+                            .stroke(Color(red: 232 / 255, green: 240 / 255, blue: 254 / 255), lineWidth: 3)
+                    }
                     .padding(.top, 8)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 16)
+            .padding(.horizontal, 28)
+            .padding(.bottom, 12)
         }
     }
 
-    // MARK: - STEP 2: Concern
+    // MARK: - STEP 2（6アイコングリッド）
 
     private var concernPage: some View {
-        OnboardingPage(title: "気づいたら伸びてた…\nなんてこと、ありませんか？",
-                       subtitle: "見落としやすい6項目を自動で見守ります") {
-            LazyVGrid(
-                columns: [.init(.flexible()), .init(.flexible()), .init(.flexible())],
-                spacing: 20
-            ) {
-                ForEach(GroomingCategory.allCases) { category in
-                    VStack(spacing: 10) {
-                        GroomingIconView(category: category, size: 26)
-                        Text(category.title)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(AppTheme.primary)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 22) {
+                Text("気づいたら伸びてた…\nなんてこと、ありませんか？")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(AppTheme.primary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.top, 32)
+
+                LazyVGrid(
+                    columns: [.init(.flexible(), spacing: 12), .init(.flexible(), spacing: 12)],
+                    spacing: 12
+                ) {
+                    ForEach(GroomingCategory.allCases) { category in
+                        CategoryOnboardingIconCell(category: category)
                     }
                 }
+
+                Text("セイケツが、あなたの身だしなみを\n全自動でサポート！")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.primary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
             }
-            .padding(.top, 8)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 12)
         }
     }
 
-    // MARK: - STEP 3: Notify（元のPNG）
+    // MARK: - STEP 3（通知許可・チェックリスト）
 
     private var notifyOnlyPage: some View {
-        OnboardingPage(title: "やることは\n通知を許可するだけ。", subtitle: nil) {
-            OnboardingIllustration(name: "OnboardingNotification", height: 220)
-            VStack(alignment: .leading, spacing: 14) {
-                checklistRow("最適なタイミングで通知")
-                checklistRow("設定や入力は一切不要")
-                checklistRow("すべて自動でスタート")
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 22) {
+                Text("やることは\n通知を許可するだけ。")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(AppTheme.primary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.top, 32)
+
+                Image("OnboardingNotification")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 260, maxHeight: 200)
+
+                VStack(alignment: .leading, spacing: 14) {
+                    OnboardingCheckRow(text: "最適なタイミングでお知らせ")
+                    OnboardingCheckRow(text: "設定や入力は一切不要")
+                    OnboardingCheckRow(text: "すべて自動で始まります")
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 4)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 12)
         }
     }
 
-    // MARK: - STEP 4: Permission Dialog
+    // MARK: - STEP 4（STEP3を薄く表示＋iOSダイアログ）
 
     private var requestPermissionPage: some View {
-        OnboardingPage(title: "通知の許可",
-                       subtitle: "標準のiOSダイアログで安心して許可できます") {
-            VStack(spacing: 0) {
-                VStack(spacing: 4) {
-                    Text("「セイケツ」は通知を送信します。")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppTheme.primary)
-                    Text("よろしいですか？")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppTheme.primary)
-                }
-                .padding(.vertical, 18)
-                Divider()
-                HStack(spacing: 0) {
-                    Button("許可しない") { permissionDenied = true }
-                        .font(.body)
-                        .foregroundStyle(AppTheme.secondary)
-                        .frame(maxWidth: .infinity)
-                    Divider().frame(height: 44)
-                    Button("許可") { requestNotificationsAndAdvance() }
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(AppTheme.accent)
-                        .frame(maxWidth: .infinity)
-                }
-                .frame(height: 44)
-            }
-            .background(AppTheme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .shadow(color: AppTheme.cardShadow, radius: 12, y: 4)
-            .padding(.top, 10)
+        ZStack {
+            notifyOnlyPage
+                .blur(radius: 2)
+                .overlay { Color.black.opacity(0.25).ignoresSafeArea() }
+                .allowsHitTesting(false)
+
+            iosPermissionDialog
+                .padding(.horizontal, 40)
         }
     }
 
-    // MARK: - STEP 5: Setup Done
+    private var iosPermissionDialog: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 6) {
+                Text("「セイケツ」は通知を送信します。")
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.primary)
+                    .multilineTextAlignment(.center)
+                Text("よろしいですか？")
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.primary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.vertical, 22)
+            .padding(.horizontal, 16)
+
+            Divider()
+
+            HStack(spacing: 0) {
+                Button("許可しない") {
+                    permissionDenied = true
+                }
+                .font(.body)
+                .foregroundStyle(AppTheme.secondary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+
+                Divider().frame(width: 1, height: 44)
+
+                Button("許可") {
+                    requestNotificationsAndAdvance()
+                }
+                .font(.body.weight(.semibold))
+                .foregroundStyle(AppTheme.accent)
+                .frame(maxWidth: .infinity, minHeight: 44)
+            }
+        }
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .shadow(color: Color.black.opacity(0.18), radius: 24, y: 8)
+    }
+
+    // MARK: - STEP 5（自動セット完了）
 
     private var setupDonePage: some View {
-        OnboardingPage(title: "完了！\nすべて自動でセットされました", subtitle: nil) {
-            VStack(spacing: 0) {
-                ForEach(Array(GroomingCategory.allCases.enumerated()), id: \.element.id) { index, category in
-                    let task = store.task(for: category) ?? GroomingTask(category: category)
-                    HStack(spacing: 12) {
-                        GroomingIconView(category: category, size: 18)
-                        VStack(alignment: .leading, spacing: 2) {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 20) {
+                VStack(spacing: 10) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 44))
+                        .foregroundStyle(AppTheme.done)
+                    Text("完了！")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(AppTheme.primary)
+                    Text("すべて自動でセットされました")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 28)
+
+                VStack(spacing: 0) {
+                    ForEach(Array(GroomingCategory.allCases.enumerated()), id: \.element.id) { index, category in
+                        HStack(spacing: 12) {
+                            GroomingIconView(category: category, size: 22)
                             Text(category.title)
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(AppTheme.primary)
-                            Text(task.statusMessage)
-                                .font(.caption)
+                            Spacer()
+                            Text("あと\(GroomingStore.initialDueOffsetDays)日")
+                                .font(.caption.weight(.medium))
                                 .foregroundStyle(AppTheme.secondary)
                         }
-                        Spacer()
-                        Text(category.presetLabel)
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(AppTheme.accent)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(AppTheme.accent.opacity(0.1))
-                            .clipShape(Capsule())
-                    }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    if index < GroomingCategory.allCases.count - 1 {
-                        Divider().padding(.leading, 60)
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 16)
+
+                        if index < GroomingCategory.allCases.count - 1 {
+                            Divider().padding(.leading, 56)
+                        }
                     }
                 }
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(AppTheme.separator.opacity(0.6), lineWidth: 1)
+                }
+
+                Text("あなたの周期に合わせてアラートが届きます")
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.secondary)
+                    .multilineTextAlignment(.center)
             }
-            .background(AppTheme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: AppTheme.cardShadow, radius: 12, y: 4)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 12)
             .onAppear {
                 if store.tasks.isEmpty { store.initializeDefaults() }
             }
         }
     }
 
-    // MARK: - STEP 6: Motivation（元のPNG）
+    // MARK: - STEP 6（モチベーション）
 
     private var motivationPage: some View {
-        OnboardingPage(title: "さあ、清潔感のある\n自分へ。",
-                       subtitle: "セイケツがあなたの身だしなみを見守ります") {
-            OnboardingIllustration(name: "OnboardingMotivation", height: 260)
-            Text("一緒に自分をアップデートしよう！")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppTheme.primary)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 22) {
+                Text("さあ、清潔感のある\n自分へ。")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(AppTheme.primary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.top, 36)
+
+                Image("OnboardingMotivation")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 280, maxHeight: 260)
+
+                Text("セイケツが、あなたの身だしなみを見守ります。\n一緒に、自分をアップデートしていこう！")
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+            .padding(.horizontal, 28)
+            .padding(.bottom, 12)
         }
     }
 
-    // MARK: - Helpers
-
-    private func checklistRow(_ text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(AppTheme.accent)
-            Text(text)
-                .font(.subheadline)
-                .foregroundStyle(AppTheme.primary)
-        }
-    }
+    // MARK: - Actions
 
     private func requestNotificationsAndAdvance() {
         Task {
-            store.initializeDefaults()
+            if store.tasks.isEmpty {
+                store.initializeDefaults(anchorDate: store.effectiveStartDate)
+            }
             let granted = await NotificationScheduler().requestAuthorization()
             await MainActor.run {
                 if granted {
@@ -288,73 +338,40 @@ struct OnboardingView: View {
     }
 
     private func finishOnboarding() {
-        if store.tasks.isEmpty { store.initializeDefaults() }
+        if store.tasks.isEmpty {
+            store.initializeDefaults(anchorDate: store.effectiveStartDate)
+        }
         store.completeOnboarding()
     }
 }
 
-// MARK: - STEP 1 イラスト（ダーク背景専用）
+// MARK: - STEP2 セル（シンプル線画アイコン）
 
-private struct IntroIllustration: View {
+struct CategoryOnboardingIconCell: View {
+    let category: GroomingCategory
+
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(.white.opacity(0.05))
-                .frame(width: 230, height: 230)
-
-            ForEach(Array(GroomingCategory.allCases.enumerated()), id: \.element.id) { index, category in
-                let angle = Double(index) / Double(GroomingCategory.allCases.count) * 360.0 - 90.0
-                let radius: CGFloat = 92
-                // ダーク背景なので白ベースの円にする
-                ZStack {
-                    Circle()
-                        .fill(.white.opacity(0.12))
-                        .frame(width: 44, height: 44)
-                    Image(category.assetIconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 22, height: 22)
-                        .colorInvert()
-                        .opacity(0.9)
-                }
-                .offset(
-                    x: cos(angle * .pi / 180) * radius,
-                    y: sin(angle * .pi / 180) * radius
-                )
-            }
-
-            LogoMarkView(size: 68)
+        VStack(spacing: 10) {
+            Image(category.assetIconName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 36, height: 36)
+            Text(category.title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.primary)
         }
-        .frame(width: 230, height: 230)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(AppTheme.separator.opacity(0.55), lineWidth: 1)
+        }
     }
 }
 
-// MARK: - Page Layout
-
-private struct OnboardingPage<Content: View>: View {
-    let title: String
-    let subtitle: String?
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 20) {
-                Text(title)
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppTheme.primary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .padding(.top, 32)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(AppTheme.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                content
-            }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 16)
-        }
-    }
+#Preview {
+    OnboardingView()
+        .environmentObject(GroomingStore())
 }

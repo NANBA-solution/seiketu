@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .s1 { stroke: #0B1D3A; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .s2 { stroke: #1E3A8A; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+      .f1 { fill: #0B1D3A; }
+      .f2 { fill: #1E3A8A; }
+    </style>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1024" height="1024"/>
+
+  <!-- Grid -->
+  <g transform="translate(64,64)">
+    <!-- Row 1 -->
+    <g transform="translate(0,0)">
+      <!-- Brush -->
+      <path class="s1" d="M96 36 C118 36 136 54 136 76 C136 98 118 116 96 116 C74 116 56 98 56 76 C56 54 74 36 96 36 Z"/>
+      <path class="s1" d="M96 116 L96 156"/>
+      <path class="s1" d="M76 156 H116"/>
+    </g>
+    <g transform="translate(224,0)">
+      <!-- Nail clipper -->
+      <path class="s1" d="M56 116 H136"/>
+      <path class="s1" d="M76 116 L76 78 C76 64 86 54 100 54 C114 54 124 64 124 78 L124 116"/>
+      <path class="s2" d="M52 132 H140"/>
+    </g>
+    <g transform="translate(448,0)">
+      <!-- Ear pick -->
+      <path class="s1" d="M64 140 L128 52"/>
+      <circle class="s2" cx="56" cy="148" r="10"/>
+      <path class="s1" d="M122 44 L136 58"/>
+    </g>
+    <g transform="translate(672,0)">
+      <!-- Scissors -->
+      <circle class="s1" cx="74" cy="120" r="22"/>
+      <circle class="s1" cx="118" cy="120" r="22"/>
+      <path class="s1" d="M74 98 L128 54"/>
+      <path class="s1" d="M118 98 L74 54"/>
+    </g>
+
+    <!-- Row 2 -->
+    <g transform="translate(0,224)">
+      <!-- Bell -->
+      <path class="s1" d="M64 132 H128"/>
+      <path class="s1" d="M74 132 V90 C74 66 92 50 96 50 C100 50 118 66 118 90 V132"/>
+      <circle class="f2" cx="96" cy="148" r="8"/>
+    </g>
+    <g transform="translate(224,224)">
+      <!-- Calendar -->
+      <rect class="s1" x="54" y="56" width="84" height="92" rx="10"/>
+      <path class="s1" d="M54 84 H138"/>
+      <path class="s2" d="M72 42 V66"/>
+      <path class="s2" d="M120 42 V66"/>
+    </g>
+    <g transform="translate(448,224)">
+      <!-- Chart -->
+      <path class="s1" d="M58 146 H138"/>
+      <rect class="f2" x="70" y="106" width="14" height="40" rx="4"/>
+      <rect class="f1" x="92" y="88" width="14" height="58" rx="4"/>
+      <rect class="f2" x="114" y="70" width="14" height="76" rx="4"/>
+    </g>
+    <g transform="translate(672,224)">
+      <!-- Gear -->
+      <circle class="s1" cx="96" cy="102" r="26"/>
+      <path class="s1" d="M96 52 V64 M96 140 V152 M46 102 H58 M134 102 H146"/>
+      <path class="s2" d="M62 68 L70 76 M122 128 L130 136 M130 68 L122 76 M70 128 L62 136"/>
+    </g>
+
+    <!-- Row 3 -->
+    <g transform="translate(0,448)">
+      <!-- Privacy shield -->
+      <path class="s1" d="M96 42 L136 58 V94 C136 122 118 144 96 154 C74 144 56 122 56 94 V58 Z"/>
+      <path class="s2" d="M96 76 V112"/>
+      <circle class="f2" cx="96" cy="124" r="5"/>
+    </g>
+    <g transform="translate(224,448)">
+      <!-- Help -->
+      <circle class="s1" cx="96" cy="96" r="54"/>
+      <path class="s1" d="M82 82 C82 70 92 62 104 62 C116 62 126 70 126 82 C126 92 120 96 112 102 C104 108 102 112 102 118"/>
+      <circle class="f2" cx="102" cy="132" r="5"/>
+    </g>
+    <g transform="translate(448,448)">
+      <!-- Check circle -->
+      <circle class="s2" cx="96" cy="96" r="54"/>
+      <path class="s1" d="M70 96 L88 114 L124 78"/>
+    </g>
+    <g transform="translate(672,448)">
+      <!-- Plus button -->
+      <circle class="f1" cx="96" cy="96" r="56"/>
+      <path class="s2" d="M96 66 V126"/>
+      <path class="s2" d="M66 96 H126"/>
+    </g>
+
+    <!-- Row 4 -->
+    <g transform="translate(0,672)">
+      <!-- Edit -->
+      <path class="s1" d="M58 136 L70 102 L118 54 C124 48 134 48 140 54 C146 60 146 70 140 76 L92 124 Z"/>
+      <path class="s2" d="M108 64 L130 86"/>
+    </g>
+    <g transform="translate(224,672)">
+      <!-- Share -->
+      <circle class="f1" cx="70" cy="90" r="10"/>
+      <circle class="f1" cx="124" cy="64" r="10"/>
+      <circle class="f1" cx="124" cy="126" r="10"/>
+      <path class="s2" d="M78 86 L116 68"/>
+      <path class="s2" d="M78 94 L116 122"/>
+    </g>
+    <g transform="translate(448,672)">
+      <!-- Back chevron -->
+      <path class="s1" d="M122 54 L70 96 L122 138"/>
+    </g>
+    <g transform="translate(672,672)">
+      <!-- Forward chevron -->
+      <path class="s1" d="M70 54 L122 96 L70 138"/>
+    </g>
+  </g>
+</svg>
