@@ -252,13 +252,13 @@ final class GroomingStore: ObservableObject {
             userInfo: ["category": category.rawValue]
         )
         Task {
-            await notificationScheduler.clearDelivered(category: category)
-            await notificationScheduler.schedule(task: tasks[index])
+            await syncNotificationSchedule(for: category)
         }
     }
 
     func markNotified(category: GroomingCategory) {
         guard let index = tasks.firstIndex(where: { $0.category == category }) else { return }
+        guard tasks[index].notificationsEnabled else { return }
         alignDueForNotification(at: index)
         tasks[index].markNotified()
         persist()
@@ -289,6 +289,7 @@ final class GroomingStore: ObservableObject {
             await MainActor.run {
                 for index in tasks.indices {
                     let category = tasks[index].category
+                    guard tasks[index].notificationsEnabled else { continue }
                     if delivered.contains(category) && tasks[index].isDueOrOverdue {
                         tasks[index].markNotified()
                     }
@@ -335,35 +336,6 @@ final class GroomingStore: ObservableObject {
         _ = await notificationScheduler.requestAuthorization()
         for task in tasks where task.notificationsEnabled {
             await notificationScheduler.schedule(task: task)
-        }
-    }
-
-    // MARK: - テスト用
-
-    /// 指定秒後にテスト通知（アプリをバックグラウンドにすると表示されやすい）
-    @discardableResult
-    func fireTestNotification(
-        for category: GroomingCategory,
-        afterSeconds: TimeInterval = 5
-    ) async -> (scheduled: Bool, authorized: Bool) {
-        guard task(for: category)?.notificationsEnabled != false else { return (false, true) }
-        let authorized = await notificationScheduler.requestAuthorization()
-        guard authorized else { return (false, false) }
-        let scheduled = await notificationScheduler.scheduleTestNotification(
-            category: category,
-            delaySeconds: afterSeconds
-        )
-        return (scheduled, true)
-    }
-
-    /// 期限到来＋通知済み状態にして「やった！」を試せるようにする
-    func simulateDueToday(for category: GroomingCategory) {
-        guard let index = tasks.firstIndex(where: { $0.category == category }) else { return }
-        tasks[index].nextDueAt = Date()
-        tasks[index].markNotified()
-        persist()
-        Task {
-            _ = await fireTestNotification(for: category, afterSeconds: 5)
         }
     }
 
@@ -418,5 +390,13 @@ final class GroomingStore: ObservableObject {
     private func persist() {
         guard let data = try? JSONEncoder().encode(tasks) else { return }
         UserDefaults.standard.set(data, forKey: Self.storageKey)
+    }
+
+    /// 通知予約をクリアし、ON のカテゴリだけ再スケジュール
+    private func syncNotificationSchedule(for category: GroomingCategory) async {
+        guard let index = tasks.firstIndex(where: { $0.category == category }) else { return }
+        await notificationScheduler.clearDelivered(category: category)
+        guard tasks[index].notificationsEnabled else { return }
+        await notificationScheduler.schedule(task: tasks[index])
     }
 }

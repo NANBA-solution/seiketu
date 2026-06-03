@@ -47,8 +47,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        if let raw = notification.request.content.userInfo["category"] as? String,
-           let category = GroomingCategory(rawValue: raw) {
+        guard shouldHandle(notification) else {
+            return [.banner, .sound]
+        }
+        if let category = groomingCategory(from: notification) {
             await MainActor.run {
                 store?.markNotified(category: category)
             }
@@ -60,15 +62,25 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        guard let raw = response.notification.request.content.userInfo["category"] as? String,
-              let category = GroomingCategory(rawValue: raw)
-        else { return }
+        guard shouldHandle(response.notification) else { return }
+        guard let category = groomingCategory(from: response.notification) else { return }
         await MainActor.run {
             store?.handleNotificationInteraction(
                 category: category,
                 actionIdentifier: response.actionIdentifier
             )
         }
+    }
+
+    /// カテゴリ不明・通知OFFはアプリ状態に反映しない
+    private func shouldHandle(_ notification: UNNotification) -> Bool {
+        guard let category = groomingCategory(from: notification) else { return false }
+        return store?.task(for: category)?.notificationsEnabled != false
+    }
+
+    private func groomingCategory(from notification: UNNotification) -> GroomingCategory? {
+        guard let raw = notification.request.content.userInfo["category"] as? String else { return nil }
+        return GroomingCategory(rawValue: raw)
     }
 }
 
@@ -502,8 +514,6 @@ private struct ScheduleSettingsView: View {
     @EnvironmentObject private var store: GroomingStore
     @State private var draftDates: [String: Date] = [:]
     @State private var message = ""
-    @State private var testCategory: GroomingCategory = .noseHair
-    @State private var isSendingTest = false
 
     private var orderedTasks: [GroomingTask] {
         store.tasks.sorted { lhs, rhs in
@@ -573,10 +583,6 @@ private struct ScheduleSettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
 
-                    #if DEBUG
-                    notificationTestSection
-                    #endif
-
                     SettingsComplianceSection()
                 }
                 .padding(.horizontal, 16)
@@ -603,67 +609,5 @@ private struct ScheduleSettingsView: View {
         draftDates = Dictionary(uniqueKeysWithValues: store.tasks.map {
             ($0.category.rawValue, Calendar.current.startOfDay(for: $0.nextDueAt))
         })
-    }
-
-    private var notificationTestSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("通知テスト")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(AppTheme.primary)
-
-            Text("5秒後に通知します。届かないときは通知を許可しているか、一度ホームに戻ってアプリをバックグラウンドにしてください。")
-                .font(.caption)
-                .foregroundStyle(AppTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Picker("項目", selection: $testCategory) {
-                ForEach(GroomingCategory.allCases) { category in
-                    Text(category.title).tag(category)
-                }
-            }
-            .pickerStyle(.menu)
-            .tint(AppTheme.primary)
-
-            Button {
-                isSendingTest = true
-                Task {
-                    let result = await store.fireTestNotification(for: testCategory, afterSeconds: 5)
-                    await MainActor.run {
-                        isSendingTest = false
-                        if !result.authorized {
-                            message = "通知が許可されていません。iOSの設定で許可してください。"
-                        } else if !result.scheduled,
-                                  store.task(for: testCategory)?.notificationsEnabled == false {
-                            message = "「\(testCategory.title)」は通知しない設定です"
-                        } else if result.scheduled {
-                            message = "5秒後に「\(testCategory.title)」のテスト通知を送ります"
-                        } else {
-                            message = "テスト通知の登録に失敗しました"
-                        }
-                    }
-                }
-            } label: {
-                HStack {
-                    if isSendingTest {
-                        ProgressView()
-                            .tint(.white)
-                    }
-                    Text(isSendingTest ? "登録中…" : "5秒後にテスト通知")
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(PrimaryButtonStyle())
-            .disabled(isSendingTest)
-
-            Button {
-                store.simulateDueToday(for: testCategory)
-                message = "「\(testCategory.title)」を期限到来にしました。5秒後に通知し、ホームで「やった！」を試せます"
-            } label: {
-                Text("期限到来をシミュレート（やった！テスト）")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(SecondaryButtonStyle())
-        }
-        .modernCard(padding: 14)
     }
 }

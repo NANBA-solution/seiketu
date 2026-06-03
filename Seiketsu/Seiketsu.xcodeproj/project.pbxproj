@@ -22,8 +22,6 @@
 		B10000000000000000000014 /* OnboardingTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000014 /* OnboardingTheme.swift */; };
 		B10000000000000000000015 /* SectionRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000015 /* SectionRefresh.swift */; };
 		B10000000000000000000012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000012 /* Assets.xcassets */; };
-		B10000000000000000000017 /* seiketsu_notify.caf in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000017 /* seiketsu_notify.caf */; };
-		B10000000000000000000018 /* AppNotificationSound.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000018 /* AppNotificationSound.swift */; };
 		B10000000000000000000020 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000020 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -44,8 +42,6 @@
 		F10000000000000000000013 /* SeiketsuLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeiketsuLogoView.swift; sourceTree = "<group>"; };
 		F10000000000000000000014 /* OnboardingTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTheme.swift; sourceTree = "<group>"; };
 		F10000000000000000000015 /* SectionRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionRefresh.swift; sourceTree = "<group>"; };
-		F10000000000000000000017 /* seiketsu_notify.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = seiketsu_notify.caf; sourceTree = "<group>"; };
-		F10000000000000000000018 /* AppNotificationSound.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotificationSound.swift; sourceTree = "<group>"; };
 		F10000000000000000000020 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -105,7 +101,6 @@
 			children = (
 				F10000000000000000000004 /* GroomingStore.swift */,
 				F10000000000000000000005 /* NotificationScheduler.swift */,
-				F10000000000000000000018 /* AppNotificationSound.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -133,7 +128,6 @@
 		G10000000000000000000012 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				F10000000000000000000017 /* seiketsu_notify.caf */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -233,7 +227,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B10000000000000000000012 /* Assets.xcassets in Resources */,
-				B10000000000000000000017 /* seiketsu_notify.caf in Resources */,
 				B10000000000000000000020 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -250,7 +243,6 @@
 				B10000000000000000000003 /* GroomingTask.swift in Sources */,
 				B10000000000000000000004 /* GroomingStore.swift in Sources */,
 				B10000000000000000000005 /* NotificationScheduler.swift in Sources */,
-				B10000000000000000000018 /* AppNotificationSound.swift in Sources */,
 				B10000000000000000000006 /* AppTheme.swift in Sources */,
 				B10000000000000000000007 /* GroomingIconView.swift in Sources */,
 				B10000000000000000000008 /* OnboardingView.swift in Sources */,

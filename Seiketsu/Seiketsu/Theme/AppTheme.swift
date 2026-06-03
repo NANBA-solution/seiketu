@@ -183,7 +183,7 @@ struct NotificationModeControl: View {
                     .font(.caption.weight(.bold))
                     .foregroundStyle(AppTheme.primary)
                 Spacer()
-                Text(isEnabled ? "毎日 9:00 · 19:00" : "通知なし · ✓で記録")
+                Text(isEnabled ? "期限日に通知" : "通知なし · ✓で記録")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(AppTheme.secondary)
             }

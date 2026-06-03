@@ -1,7 +1,7 @@
 import Foundation
 import UserNotifications
 
-/// 通知は毎日 9:00 / 19:00 の2回。期限日・追い通知日とも同じ枠。
+/// 期限日・追い通知日の 9:00 / 19:00 のみ（毎日ではない）。
 enum NotificationSchedulePolicy {
     static let morningHour = 9
     static let morningMinute = 0
@@ -81,7 +81,7 @@ actor NotificationScheduler {
             let content = UNMutableNotificationContent()
             content.title = title
             content.body = body
-            AppNotificationSound.apply(to: content)
+            content.sound = .default
             content.categoryIdentifier = "GROOMING"
             content.userInfo = [
                 "category": task.category.rawValue,
@@ -151,35 +151,5 @@ actor NotificationScheduler {
         let ids = identifiers(for: category, followUpDays: NotificationSchedulePolicy.maxFollowUpDaysForCleanup)
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: ids)
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
-    }
-
-    /// テスト用: 数秒後に1通だけ通知（本番スケジュールは消さない）
-    @discardableResult
-    func scheduleTestNotification(
-        category: GroomingCategory,
-        delaySeconds: TimeInterval = 5
-    ) async -> Bool {
-        let center = UNUserNotificationCenter.current()
-        let content = UNMutableNotificationContent()
-        content.title = "[テスト] \(category.notificationTitle)"
-        content.body = category.notificationBody
-        AppNotificationSound.apply(to: content)
-        content.categoryIdentifier = "GROOMING"
-        content.userInfo = ["category": category.rawValue, "followUpStep": 0, "isTest": true]
-
-        let trigger = UNTimeIntervalNotificationTrigger(
-            timeInterval: max(1, delaySeconds),
-            repeats: false
-        )
-        let request = UNNotificationRequest(
-            identifier: "seiketsu.\(category.rawValue).test.\(UUID().uuidString)",
-            content: content,
-            trigger: trigger
-        )
-        return await withCheckedContinuation { continuation in
-            center.add(request) { error in
-                continuation.resume(returning: error == nil)
-            }
-        }
     }
 }
