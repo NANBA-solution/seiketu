@@ -213,8 +213,25 @@ final class GroomingStore: ObservableObject {
         persist()
         Task {
             await notificationScheduler.clearDelivered(category: tasks[index].category)
-            await notificationScheduler.schedule(task: tasks[index])
+            if tasks[index].notificationsEnabled {
+                await notificationScheduler.schedule(task: tasks[index])
+            }
         }
+    }
+
+    /// 審査・ユーザー向け: 端末内データをすべて削除しオンボーディングへ戻す
+    func resetAllUserData() {
+        Task {
+            for category in GroomingCategory.allCases {
+                await notificationScheduler.clearDelivered(category: category)
+            }
+        }
+        tasks = []
+        hasCompletedOnboarding = false
+        startDateMode = .auto
+        manualStartDate = .now
+        didRefreshScheduleThisSession = false
+        UserDefaults.standard.removeObject(forKey: Self.storageKey)
     }
 
     func markDone(category: GroomingCategory, fromNotification: Bool = false) {

@@ -69,14 +69,19 @@ struct StatusSummaryPill: View {
     let count: Int
     let color: Color
 
+    @State private var isHovered = false
+
     var body: some View {
         Text("\(label) \(count)")
             .font(.system(size: 11, weight: .bold))
             .foregroundStyle(color)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(color.opacity(0.12))
+            .background(color.opacity(isHovered ? 0.2 : 0.12))
             .clipShape(Capsule())
+            .scaleEffect(isHovered ? 1.04 : 1)
+            .animation(.spring(response: 0.28, dampingFraction: 0.8), value: isHovered)
+            .onHover { isHovered = $0 }
     }
 }
 

@@ -68,6 +68,23 @@ struct GroomingTask: Identifiable, Equatable {
         return "あと\(days)日"
     }
 
+    /// 設定カードなど「今日から何日後」表記
+    var daysFromTodayLabel: String {
+        Self.offsetLabel(days: daysUntilDue)
+    }
+
+    static func daysFromToday(to dueDate: Date) -> Int {
+        let start = Calendar.current.startOfDay(for: .now)
+        let due = Calendar.current.startOfDay(for: dueDate)
+        return Calendar.current.dateComponents([.day], from: start, to: due).day ?? 0
+    }
+
+    static func offsetLabel(days: Int) -> String {
+        if days < 0 { return "\(-days)日超過" }
+        if days == 0 { return "今日" }
+        return "\(days)日後"
+    }
+
     var isDueOrOverdue: Bool {
         daysUntilDue <= 0
     }

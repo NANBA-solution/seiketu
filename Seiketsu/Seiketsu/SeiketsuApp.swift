@@ -98,7 +98,6 @@ struct RootView: View {
 private enum AppTab: Hashable {
     case home
     case calendar
-    case history
     case settings
 }
 
@@ -117,12 +116,6 @@ private struct MainTabView: View {
                 .tag(AppTab.calendar)
                 .tabItem {
                     Label("予定", systemImage: "calendar")
-                }
-
-            HistoryView(showsCloseButton: false)
-                .tag(AppTab.history)
-                .tabItem {
-                    Label("記録", systemImage: "chart.bar.fill")
                 }
 
             ScheduleSettingsView()
@@ -240,6 +233,7 @@ private struct CalendarCheckView: View {
                                     .background(AppTheme.lightBlue)
                                     .clipShape(Circle())
                             }
+                            .buttonStyle(ModernPressButtonStyle())
                             Spacer()
                             Text(monthTitle)
                                 .font(.headline.weight(.bold))
@@ -257,6 +251,7 @@ private struct CalendarCheckView: View {
                                     .background(AppTheme.lightBlue)
                                     .clipShape(Circle())
                             }
+                            .buttonStyle(ModernPressButtonStyle())
                         }
 
                         LazyVGrid(columns: columns, spacing: 8) {
@@ -303,7 +298,7 @@ private struct CalendarCheckView: View {
                                                 )
                                         )
                                     }
-                                    .buttonStyle(.plain)
+                                    .buttonStyle(ModernPressButtonStyle(scale: 0.94))
                                 } else {
                                     Color.clear
                                         .frame(maxWidth: .infinity, minHeight: 40)
@@ -311,7 +306,7 @@ private struct CalendarCheckView: View {
                             }
                         }
                     }
-                    .appCard(padding: 12)
+                    .modernCard(padding: 12)
 
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -325,6 +320,7 @@ private struct CalendarCheckView: View {
                                 }
                                 .font(.caption.weight(.bold))
                                 .foregroundStyle(AppTheme.accent)
+                                .buttonStyle(ModernPressButtonStyle(scale: 0.96))
                             }
                         }
 
@@ -520,60 +516,42 @@ private struct ScheduleSettingsView: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 16) {
+                    SettingsAutoGuideBanner()
+
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("カテゴリー別の日付設定")
+                        Text("手動で調整する")
                             .font(.headline.weight(.semibold))
                             .foregroundStyle(AppTheme.primary)
 
-                        Text("各カテゴリーの期限日を変更できます。通知は期限日から毎日 9:00 と 19:00 に届き、追い通知も同じ時刻です。")
+                        Text("カテゴリーごとに次回ケア日と通知の有無を変えられます。")
                             .font(.caption)
                             .foregroundStyle(AppTheme.secondary)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        ForEach(orderedTasks) { task in
-                            VStack(spacing: 8) {
-                                HStack(spacing: 8) {
-                                    GroomingIconView(category: task.category, size: 16)
-                                    Text(task.category.title)
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundStyle(AppTheme.primary)
-                                    StatusBadge(daysUntilDue: task.daysUntilDue)
-                                    Spacer()
-                                    Text(task.daysLeftLabel)
-                                        .font(.caption2.weight(.semibold))
-                                        .foregroundStyle(task.isDueOrOverdue ? AppTheme.danger : AppTheme.secondary)
-                                }
-
-                                DatePicker(
-                                    "",
-                                    selection: Binding(
+                        VStack(spacing: 12) {
+                            ForEach(orderedTasks) { task in
+                                CategorySettingsRow(
+                                    task: task,
+                                    draftDate: Binding(
                                         get: {
-                                            draftDates[task.category.rawValue] ?? Calendar.current.startOfDay(for: task.nextDueAt)
+                                            draftDates[task.category.rawValue]
+                                                ?? Calendar.current.startOfDay(for: task.nextDueAt)
                                         },
                                         set: { newValue in
-                                            draftDates[task.category.rawValue] = Calendar.current.startOfDay(for: newValue)
+                                            draftDates[task.category.rawValue] = Calendar.current.startOfDay(
+                                                for: newValue
+                                            )
                                         }
                                     ),
-                                    displayedComponents: .date
+                                    notificationsEnabled: store.task(for: task.category)?.notificationsEnabled ?? true,
+                                    onNotificationChange: { enabled in
+                                        store.setNotificationsEnabled(enabled, for: task.category)
+                                    }
                                 )
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                                Toggle(isOn: Binding(
-                                    get: { !(store.task(for: task.category)?.notificationsEnabled ?? true) },
-                                    set: { store.setNotificationsEnabled(!$0, for: task.category) }
-                                )) {
-                                    Text("通知しない")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundStyle(AppTheme.secondary)
-                                }
-                                .tint(AppTheme.primary)
                             }
-                            .padding(.vertical, 6)
                         }
                     }
-                    .appCard(padding: 14)
+                    .modernCard(padding: 16)
 
                     Button {
                         for task in orderedTasks {
@@ -581,9 +559,9 @@ private struct ScheduleSettingsView: View {
                                 store.updateNextDueDate(for: task.category, to: date)
                             }
                         }
-                        message = "予定日を更新しました"
+                        message = "手動設定を反映しました"
                     } label: {
-                        Text("この設定を反映する")
+                        Text("手動変更を反映する")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PrimaryButtonStyle())
@@ -595,7 +573,11 @@ private struct ScheduleSettingsView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
 
+                    #if DEBUG
                     notificationTestSection
+                    #endif
+
+                    SettingsComplianceSection()
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -682,6 +664,6 @@ private struct ScheduleSettingsView: View {
             }
             .buttonStyle(SecondaryButtonStyle())
         }
-        .appCard(padding: 14)
+        .modernCard(padding: 14)
     }
 }

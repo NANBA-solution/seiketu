@@ -81,7 +81,7 @@ actor NotificationScheduler {
             let content = UNMutableNotificationContent()
             content.title = title
             content.body = body
-            content.sound = .default
+            AppNotificationSound.apply(to: content)
             content.categoryIdentifier = "GROOMING"
             content.userInfo = [
                 "category": task.category.rawValue,
@@ -163,7 +163,7 @@ actor NotificationScheduler {
         let content = UNMutableNotificationContent()
         content.title = "[テスト] \(category.notificationTitle)"
         content.body = category.notificationBody
-        content.sound = .default
+        AppNotificationSound.apply(to: content)
         content.categoryIdentifier = "GROOMING"
         content.userInfo = ["category": category.rawValue, "followUpStep": 0, "isTest": true]
 

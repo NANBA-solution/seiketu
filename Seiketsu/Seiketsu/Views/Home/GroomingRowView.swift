@@ -54,11 +54,18 @@ struct GroomingRowView: View {
                 .frame(width: 44)
         }
         .padding(14)
-        .background(AppTheme.surface)
-        .scaleEffect(isPressed ? 0.98 : 1)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(AppTheme.surface)
+                .shadow(
+                    color: AppTheme.cardShadow,
+                    radius: isPressed ? 4 : 10,
+                    y: isPressed ? 2 : 4
+                )
+        )
+        .scaleEffect(isPressed ? 0.985 : 1)
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(cardBorderColor, lineWidth: isPressed ? 2 : 1)
         }
         .animation(.spring(response: 0.28, dampingFraction: 0.72), value: isPressed)
@@ -156,7 +163,7 @@ private struct DoneButton: View {
                 .foregroundStyle(canComplete ? AppTheme.done : AppTheme.separator)
                 .accessibilityLabel("やった！")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(ModernPressButtonStyle(scale: 0.92))
         .disabled(!canComplete)
     }
 }
