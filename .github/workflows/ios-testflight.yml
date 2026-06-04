@@ -49,12 +49,15 @@ jobs:
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
           KEY_FILE="$HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8"
-          if [[ "$API_KEY" == -----BEGIN* ]]; then
-            printf '%s\n' "$API_KEY" > "$KEY_FILE"
+          CLEAN="$(printf '%s' "$API_KEY" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+          if [[ "$CLEAN" == *"BEGIN PRIVATE KEY"* ]]; then
+            printf '%s\n' "$CLEAN" > "$KEY_FILE"
             echo "API key (PEM) を配置しました"
-          else
-            printf '%s' "$API_KEY" | base64 --decode > "$KEY_FILE"
+          elif printf '%s' "$CLEAN" | base64 -d > "$KEY_FILE" 2>/dev/null && openssl pkey -in "$KEY_FILE" -noout 2>/dev/null; then
             echo "API key (base64) を配置しました"
+          else
+            echo "APPSTORE_API_PRIVATE_KEY が不正です。PEM 全文か base64 1行を設定してください"
+            exit 1
           fi
           openssl pkey -in "$KEY_FILE" -noout
           echo "AUTH_KEY_PATH=$KEY_FILE" >> "$GITHUB_ENV"
