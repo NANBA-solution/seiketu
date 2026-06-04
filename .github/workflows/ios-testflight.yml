@@ -1,7 +1,7 @@
 # セイケツ — GitHub 上の macOS 26 + Xcode 26 で Archive → App Store Connect にアップロード
 # 2026年の提出要件（iOS 26 SDK）に対応。ローカル Mac が古くてもクラウドでビルド可能。
 #
-# 初回: ci/GITHUB_SETUP.md の手順で GitHub Secrets を登録してから実行
+# 初回: ci/GITHUB_SETUP.md — API キーは Admin 必須
 
 name: iOS TestFlight Upload
 
@@ -71,6 +71,9 @@ jobs:
             exit 1
           fi
           openssl pkey -in "$KEY_FILE" -noout
+          # altool は ~/private_keys/ を参照する（xcodebuild の ~/.appstoreconnect/ とは別）
+          mkdir -p "$HOME/private_keys"
+          cp "$KEY_FILE" "$HOME/private_keys/AuthKey_${APPSTORE_API_KEY_ID_CLEAN}.p8"
           echo "AUTH_KEY_PATH=$KEY_FILE" >> "$GITHUB_ENV"
 
       - name: Archive
@@ -107,12 +110,12 @@ jobs:
           echo "IPA_PATH=$IPA" >> "$GITHUB_ENV"
 
       - name: Upload to TestFlight
-        uses: apple-actions/upload-testflight-build@v3
-        with:
-          app-path: ${{ env.IPA_PATH }}
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$APPSTORE_API_KEY_ID_CLEAN" \
+            --apiIssuer "$APPSTORE_ISSUER_ID_CLEAN"
 
       - name: Summary
         run: |
