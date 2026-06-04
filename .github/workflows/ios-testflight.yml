@@ -91,16 +91,28 @@ jobs:
             -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID_CLEAN"
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> "$GITHUB_ENV"
 
-      - name: Upload to App Store Connect
+      - name: Export IPA
         run: |
+          EXPORT_DIR="$RUNNER_TEMP/export"
           xcodebuild -exportArchive \
             -archivePath "$ARCHIVE_PATH" \
-            -exportPath "$RUNNER_TEMP/export" \
+            -exportPath "$EXPORT_DIR" \
             -exportOptionsPlist ci/ExportOptions.plist \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$AUTH_KEY_PATH" \
             -authenticationKeyID "$APPSTORE_API_KEY_ID_CLEAN" \
             -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID_CLEAN"
+          IPA="$(find "$EXPORT_DIR" -name '*.ipa' | head -1)"
+          test -n "$IPA" || (echo "IPA が見つかりません" && exit 1)
+          echo "IPA_PATH=$IPA" >> "$GITHUB_ENV"
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v3
+        with:
+          app-path: ${{ env.IPA_PATH }}
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
       - name: Summary
         run: |
