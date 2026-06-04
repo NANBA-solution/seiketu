@@ -25,7 +25,6 @@ jobs:
     env:
       PROJECT_PATH: Seiketsu/Seiketsu.xcodeproj
       SCHEME: Seiketsu
-      DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,19 +35,31 @@ jobs:
           xcodebuild -version
           xcodebuild -showsdks | grep -E "iphoneos|SDK"
 
-      - name: Validate secrets
+      - name: Validate and normalize secrets
+        env:
+          ISSUER: ${{ secrets.APPSTORE_ISSUER_ID }}
+          KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+          API_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
         run: |
-          test -n "${{ secrets.APPSTORE_ISSUER_ID }}" || (echo "APPSTORE_ISSUER_ID が未設定です" && exit 1)
-          test -n "${{ secrets.APPSTORE_API_KEY_ID }}" || (echo "APPSTORE_API_KEY_ID が未設定です" && exit 1)
-          test -n "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" || (echo "APPSTORE_API_PRIVATE_KEY が未設定です" && exit 1)
-          test -n "${{ env.DEVELOPMENT_TEAM }}" || (echo "DEVELOPMENT_TEAM が未設定です" && exit 1)
+          trim() { printf '%s' "$1" | tr -d '\r"' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'; }
+          ISSUER="$(trim "$ISSUER")"
+          KEY_ID="$(trim "$KEY_ID")"
+          TEAM="$(trim "$TEAM")"
+          test -n "$ISSUER" || (echo "APPSTORE_ISSUER_ID が未設定です" && exit 1)
+          test -n "$KEY_ID" || (echo "APPSTORE_API_KEY_ID が未設定です" && exit 1)
+          test -n "$API_KEY" || (echo "APPSTORE_API_PRIVATE_KEY が未設定です" && exit 1)
+          test -n "$TEAM" || (echo "DEVELOPMENT_TEAM が未設定です" && exit 1)
+          echo "APPSTORE_ISSUER_ID_CLEAN=$ISSUER" >> "$GITHUB_ENV"
+          echo "APPSTORE_API_KEY_ID_CLEAN=$KEY_ID" >> "$GITHUB_ENV"
+          echo "DEVELOPMENT_TEAM_CLEAN=$TEAM" >> "$GITHUB_ENV"
 
       - name: Install App Store Connect API key
         env:
           API_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
-          KEY_FILE="$HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8"
+          KEY_FILE="$HOME/.appstoreconnect/private_keys/AuthKey_${APPSTORE_API_KEY_ID_CLEAN}.p8"
           CLEAN="$(printf '%s' "$API_KEY" | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
           if [[ "$CLEAN" == *"BEGIN PRIVATE KEY"* ]]; then
             printf '%s\n' "$CLEAN" > "$KEY_FILE"
@@ -71,13 +82,13 @@ jobs:
             -configuration Release \
             -archivePath "$ARCHIVE_PATH" \
             -destination "generic/platform=iOS" \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM_CLEAN" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             CODE_SIGN_STYLE=Automatic \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$AUTH_KEY_PATH" \
-            -authenticationKeyID "${{ secrets.APPSTORE_API_KEY_ID }}" \
-            -authenticationKeyIssuerID "${{ secrets.APPSTORE_ISSUER_ID }}"
+            -authenticationKeyID "$APPSTORE_API_KEY_ID_CLEAN" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID_CLEAN"
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> "$GITHUB_ENV"
 
       - name: Upload to App Store Connect
@@ -88,8 +99,8 @@ jobs:
             -exportOptionsPlist ci/ExportOptions.plist \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$AUTH_KEY_PATH" \
-            -authenticationKeyID "${{ secrets.APPSTORE_API_KEY_ID }}" \
-            -authenticationKeyIssuerID "${{ secrets.APPSTORE_ISSUER_ID }}"
+            -authenticationKeyID "$APPSTORE_API_KEY_ID_CLEAN" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID_CLEAN"
 
       - name: Summary
         run: |
