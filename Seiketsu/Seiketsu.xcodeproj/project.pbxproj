@@ -18,10 +18,10 @@
 		B10000000000000000000009 /* GroomingRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000009 /* GroomingRowView.swift */; };
 		B10000000000000000000010 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000010 /* HomeView.swift */; };
 		B10000000000000000000011 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000011 /* HistoryView.swift */; };
+		B10000000000000000000012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000012 /* Assets.xcassets */; };
 		B10000000000000000000013 /* SeiketsuLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000013 /* SeiketsuLogoView.swift */; };
 		B10000000000000000000014 /* OnboardingTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000014 /* OnboardingTheme.swift */; };
 		B10000000000000000000015 /* SectionRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000015 /* SectionRefresh.swift */; };
-		B10000000000000000000012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000012 /* Assets.xcassets */; };
 		B10000000000000000000020 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000020 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -125,13 +125,6 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		G10000000000000000000012 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
 		G10000000000000000000008 /* Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -165,6 +158,13 @@
 				F10000000000000000000011 /* HistoryView.swift */,
 			);
 			path = History;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000012 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -321,9 +321,12 @@
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = lab.nanba.seiketsu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -349,9 +352,12 @@
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = lab.nanba.seiketsu;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
