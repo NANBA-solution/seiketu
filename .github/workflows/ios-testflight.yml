@@ -44,15 +44,19 @@ jobs:
           test -n "${{ env.DEVELOPMENT_TEAM }}" || (echo "DEVELOPMENT_TEAM が未設定です" && exit 1)
 
       - name: Install App Store Connect API key
+        env:
+          API_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
           KEY_FILE="$HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8"
-          if echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" | base64 --decode > "$KEY_FILE" 2>/dev/null; then
-            echo "API key (base64) を配置しました"
+          if [[ "$API_KEY" == -----BEGIN* ]]; then
+            printf '%s\n' "$API_KEY" > "$KEY_FILE"
+            echo "API key (PEM) を配置しました"
           else
-            echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > "$KEY_FILE"
-            echo "API key (平文) を配置しました"
+            printf '%s' "$API_KEY" | base64 --decode > "$KEY_FILE"
+            echo "API key (base64) を配置しました"
           fi
+          openssl pkey -in "$KEY_FILE" -noout
           echo "AUTH_KEY_PATH=$KEY_FILE" >> "$GITHUB_ENV"
 
       - name: Archive
