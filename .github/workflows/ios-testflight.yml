@@ -1,0 +1,90 @@
+# セイケツ — GitHub 上の macOS 26 + Xcode 26 で Archive → App Store Connect にアップロード
+# 2026年の提出要件（iOS 26 SDK）に対応。ローカル Mac が古くてもクラウドでビルド可能。
+#
+# 初回: ci/GITHUB_SETUP.md の手順で GitHub Secrets を登録してから実行
+
+name: iOS TestFlight Upload
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "Seiketsu/**"
+      - ".github/workflows/ios-testflight.yml"
+      - "ci/**"
+
+concurrency:
+  group: ios-testflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upload:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      PROJECT_PATH: Seiketsu/Seiketsu.xcodeproj
+      SCHEME: Seiketsu
+      DEVELOPMENT_TEAM: ${{ secrets.DEVELOPMENT_TEAM }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          xcodebuild -showsdks | grep -E "iphoneos|SDK"
+
+      - name: Validate secrets
+        run: |
+          test -n "${{ secrets.APPSTORE_ISSUER_ID }}" || (echo "APPSTORE_ISSUER_ID が未設定です" && exit 1)
+          test -n "${{ secrets.APPSTORE_API_KEY_ID }}" || (echo "APPSTORE_API_KEY_ID が未設定です" && exit 1)
+          test -n "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" || (echo "APPSTORE_API_PRIVATE_KEY が未設定です" && exit 1)
+          test -n "${{ env.DEVELOPMENT_TEAM }}" || (echo "DEVELOPMENT_TEAM が未設定です" && exit 1)
+
+      - name: Install App Store Connect API key
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          KEY_FILE="$HOME/.appstoreconnect/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8"
+          if echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" | base64 --decode > "$KEY_FILE" 2>/dev/null; then
+            echo "API key (base64) を配置しました"
+          else
+            echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > "$KEY_FILE"
+            echo "API key (平文) を配置しました"
+          fi
+          echo "AUTH_KEY_PATH=$KEY_FILE" >> "$GITHUB_ENV"
+
+      - name: Archive
+        run: |
+          ARCHIVE_PATH="$RUNNER_TEMP/Seiketsu.xcarchive"
+          xcodebuild archive \
+            -project "$PROJECT_PATH" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -archivePath "$ARCHIVE_PATH" \
+            -destination "generic/platform=iOS" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            CODE_SIGN_STYLE=Automatic \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$AUTH_KEY_PATH" \
+            -authenticationKeyID "${{ secrets.APPSTORE_API_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.APPSTORE_ISSUER_ID }}"
+          echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> "$GITHUB_ENV"
+
+      - name: Upload to App Store Connect
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist ci/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$AUTH_KEY_PATH" \
+            -authenticationKeyID "${{ secrets.APPSTORE_API_KEY_ID }}" \
+            -authenticationKeyIssuerID "${{ secrets.APPSTORE_ISSUER_ID }}"
+
+      - name: Summary
+        run: |
+          echo "アップロード完了。App Store Connect → TestFlight で Processing を確認してください。"
+          echo "Build: 1.0.0 (${{ github.run_number }})"
